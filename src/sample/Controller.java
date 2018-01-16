@@ -44,6 +44,30 @@ public class Controller {
     private void initialize(){
         peerComboBox.setItems(FXCollections.observableArrayList("peer0", "peer1", "peer2", "peer3"));
 
+
+    }
+
+//    @FXML
+//    private void newChannel(){
+//        JoinPeer.newChannel(config, "mychannel", client, sampleOrg2);
+//    }
+
+    @FXML
+    private void joinPeer(){
+        connect();
+
+        Iterator<SampleOrg> iterator = sampleOrgs.iterator();
+        SampleOrg sampleOrg1 = iterator.next();
+        SampleOrg sampleOrg2 = iterator.next();
+        try {
+            JoinPeer.constructChannel(config, "foo", client, sampleOrg1);
+        } catch (Exception e) {
+            warning(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void connect(){
         try {
             configHelper.clearConfig();
             configHelper.customizeConfig();
@@ -54,8 +78,16 @@ public class Controller {
         sampleOrgs = config.getIntegrationTestsSampleOrgs();
         //Set up hfca for each sample org
 
+        for (SampleOrg sampleOrg : sampleOrgs) {
+            try {
+                sampleOrg.setCAClient(HFCAClient.createNewInstance(sampleOrg.getCALocation(), sampleOrg.getCAProperties()));
+            } catch (MalformedURLException e) {
+                warning(e.getMessage());
+            }
+        }
+
         //Create instance of client.
-         client = HFClient.createNewInstance();
+        client = HFClient.createNewInstance();
         //设置加密套件
         try {
             client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
@@ -69,61 +101,61 @@ public class Controller {
 //        }
 
         //初始化用户存储文件
-        File storeFile = new File("store/userStore.properties");
-        if (storeFile.exists()){
-            storeFile.delete();
+        File storeFile = new File("userStore.properties");
+        if (!storeFile.exists()){
+            try {
+                storeFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
         sampleStore = new SampleStore(storeFile);
 
         try {
             //初始化用户证书等
+
             for (SampleOrg sampleOrg : sampleOrgs) {
 
+                HFCAClient ca = sampleOrg.getCAClient();
                 final String orgName = sampleOrg.getName();
                 final String mspid = sampleOrg.getMSPID();
-                final String domainName = sampleOrg.getDomainName();
+                ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+                SampleUser admin = sampleStore.getMember(ADMIN_NAME, orgName);
+                if (!admin.isEnrolled()) {  //Preregistered admin only needs to be enrolled with Fabric caClient.
+                    admin.setEnrollment(ca.enroll(admin.getName(), "adminpw"));
+                    admin.setMspId(mspid);
+                }
 
-                //位置channel\crypto\crypto-config\peerOrganizations\org1.example.com\ users\Admin@org1.example.com
-                File peerAdminPrivateKeyFile = Paths.get(config.getTestChannelPath(), "crypto/crypto-config/peerOrganizations/",
-                        domainName, format("/users/Admin@%s/msp/keystore", domainName)).toFile();
-                //位置G:\IDEA-workspace\fabric-sample-java-sdk\channel\crypto\crypto-config\peerOrganizations\org1.example.com\ users\Admin@org1.example.com\msp\signcerts
-                File peerAdminCertificateFile = Paths.get(config.getTestChannelPath(), "crypto/crypto-config/peerOrganizations/", domainName,
-                        format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", domainName, domainName)).toFile();
-                SampleUser peerAdmin = sampleStore.getMember(orgName + ADMIN_NAME, orgName, mspid,
-                        Utils.findFileSk(peerAdminPrivateKeyFile), peerAdminCertificateFile);
-                sampleOrg.setPeerAdmin(peerAdmin); // The admin of this org --
+                sampleOrg.setAdmin(admin); // The admin of this org --
 
-                //位置channel\crypto\crypto-config\peerOrganizations\org1.example.com\ users\Admin@org1.example.com
-                File userPrivateKeyFile = Paths.get(config.getTestChannelPath(), "crypto/crypto-config/peerOrganizations/",
-                        domainName, format("/users/User1@%s/msp/keystore", domainName)).toFile();
-                //位置G:\IDEA-workspace\fabric-sample-java-sdk\channel\crypto\crypto-config\peerOrganizations\org1.example.com\ users\Admin@org1.example.com\msp\signcerts
-                File userCertificateFile = Paths.get(config.getTestChannelPath(), "crypto/crypto-config/peerOrganizations/", domainName,
-                        format("/users/User1@%s/msp/signcerts/User1@%s-cert.pem", domainName, domainName)).toFile();
-                SampleUser user1 = sampleStore.getMember(orgName + USER_1_NAME, orgName, mspid,
-                        Utils.findFileSk(userPrivateKeyFile), userCertificateFile);
-                sampleOrg.addUser(user1); // The admin of this org --
+                SampleUser user = sampleStore.getMember(USER_1_NAME, sampleOrg.getName());
+                if (!user.isRegistered()) {  // users need to be registered AND enrolled
+                    RegistrationRequest rr = new RegistrationRequest(user.getName(), "org1.department1");
+                    user.setEnrollmentSecret(ca.register(rr, admin));
+                }
+                if (!user.isEnrolled()) {
+                    user.setEnrollment(ca.enroll(user.getName(), user.getEnrollmentSecret()));
+                    user.setMspId(mspid);
+                }
+                sampleOrg.addUser(user); //Remember user belongs to this Org
+
+                final String sampleOrgName = sampleOrg.getName();
+                final String sampleOrgDomainName = sampleOrg.getDomainName();
+
+                // src/test/fixture/sdkintegration/e2e-2Orgs/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/
+
+                SampleUser peerOrgAdmin = sampleStore.getMember(sampleOrgName + "Admin", sampleOrgName, sampleOrg.getMSPID(),
+                        Utils.findFileSk(Paths.get(config.getTestChannelPath(), "crypto-config/peerOrganizations/",
+                                sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName)).toFile()),
+                        Paths.get(config.getTestChannelPath(), "crypto-config/peerOrganizations/", sampleOrgDomainName,
+                                format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName, sampleOrgDomainName)).toFile());
+
+                sampleOrg.setPeerAdmin(peerOrgAdmin); //A special user that can create channels, join peers and install chaincode
+
             }
-        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
-            warning(e.getMessage());
-        }
-    }
-
-//    @FXML
-//    private void newChannel(){
-//        JoinPeer.newChannel(config, "mychannel", client, sampleOrg2);
-//    }
-
-    @FXML
-    private void joinPeer(){
-        Iterator<SampleOrg> iterator = sampleOrgs.iterator();
-        SampleOrg sampleOrg1 = iterator.next();
-        SampleOrg sampleOrg2 = iterator.next();
-        try {
-            JoinPeer.newChannel(config, "mychannel", client, sampleOrg1);
-            JoinPeer.constructChannel(config, "mychannel", client, sampleOrg1);
         } catch (Exception e) {
             warning(e.getMessage());
-
         }
     }
 
