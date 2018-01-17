@@ -18,6 +18,7 @@
             <Button layoutX="106.0" layoutY="204.0" mnemonicParsing="false" onAction="#query" text="query" />
             <Button layoutX="136.0" layoutY="74.0" mnemonicParsing="false" onAction="#connect" text="connect" />
             <Button layoutX="102.0" layoutY="159.0" mnemonicParsing="false" onAction="#installChaincode" text="installChaincode" />
+            <Button layoutX="105.0" layoutY="246.0" mnemonicParsing="false" onAction="#invoke" text="invoke" />
          </children></AnchorPane>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
   </items>
