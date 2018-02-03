@@ -1,0 +1,49 @@
+
+syntax = "proto3";
+
+package pocket;
+
+message Pocket {
+    string addr = 1;    //用户地址
+    int64 balance = 2;  //余额
+    string pubkey = 3;  //用户公钥
+}
+
+message Output{
+    string outputAddr = 4;
+    int64 outputValue = 5;
+}
+
+//需要格外注意，每个addr只能读取一次
+message TXMap{
+    message TX {
+        int64 timestamp = 1;
+        string inputAddr = 2;
+        int64 inputBalance = 3;
+        int64 nounce = 4;
+        //需要处理output addr重复问题
+        repeated Output output = 5;
+        string script = 6;          //签名
+        int64 fee = 7;
+    }
+    //the string is input addr
+    map<string, TX> txMap = 1;
+    int64 timestamp = 2;
+    string founder = 3;
+}
+
+message PointInfo {
+    int64 accountTotal = 1; //账户总数
+    int64 txTotal = 2;      //交易总数
+    int64 pointTotal = 3;   //积分总数
+    string holder = 4;      //填充字段
+}
+
+message PointKind {
+    repeated string kind = 1;   //积分种类
+}
+
+message QueryResult {
+    int64 nounce = 1;
+    int64 balance = 2;
+}
