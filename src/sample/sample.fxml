@@ -4,10 +4,11 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<SplitPane dividerPositions="0.29797979797979796" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="539.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<SplitPane dividerPositions="0.32395950506186727" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="635.0" prefWidth="947.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
   <items>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
          <children>
@@ -15,12 +16,39 @@
             <Label layoutX="16.0" layoutY="39.0" text="ip" />
             <ComboBox fx:id="peerComboBox" layoutX="27.0" layoutY="112.0" prefWidth="150.0" />
             <Button layoutX="193.0" layoutY="112.0" mnemonicParsing="false" onAction="#joinPeer" text="join" />
-            <Button layoutX="105.0" layoutY="236.0" mnemonicParsing="false" onAction="#query" text="query" />
             <Button layoutX="136.0" layoutY="74.0" mnemonicParsing="false" onAction="#connect" text="connect" />
-            <Button layoutX="102.0" layoutY="159.0" mnemonicParsing="false" onAction="#installChaincode" text="installChaincode" />
-            <Button layoutX="104.0" layoutY="278.0" mnemonicParsing="false" onAction="#invoke" text="invoke" />
-            <Button layoutX="103.0" layoutY="194.0" mnemonicParsing="false" onAction="#upgradeChaincode" text="upgradeChaincode" />
+            <Button layoutX="4.0" layoutY="148.0" mnemonicParsing="false" onAction="#installChaincode" text="installChaincode" />
+            <Button layoutX="124.0" layoutY="148.0" mnemonicParsing="false" onAction="#upgradeChaincode" text="upgradeChaincode" />
+            <TextField fx:id="totalPointTextField" layoutX="20.0" layoutY="331.0" promptText="total point" />
+            <Button fx:id="newPocket" layoutX="185.0" layoutY="331.0" mnemonicParsing="false" text="newPocket" />
+            <ComboBox fx:id="kind" layoutX="87.0" layoutY="194.0" prefHeight="23.0" prefWidth="161.0" />
+            <TextField fx:id="publicKeyTextField" layoutX="88.0" layoutY="263.0" />
+            <TextField fx:id="addrTextField" layoutX="87.0" layoutY="231.0" />
+            <Label layoutX="33.0" layoutY="235.0" text="addr" />
+            <Label layoutX="20.0" layoutY="267.0" text="publicKey" />
+            <Label layoutX="34.0" layoutY="198.0" text="kind" />
+            <TextField fx:id="kindTextField3" layoutX="19.0" layoutY="376.0" promptText="addr" />
+            <Button fx:id="newPocket1" layoutX="187.0" layoutY="376.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="79.0" text="register" />
+            <TextField fx:id="kindTextField31" layoutX="20.0" layoutY="407.0" promptText="public key" />
+            <TextField fx:id="kindTextField32" layoutX="19.0" layoutY="450.0" promptText="output addr" />
+            <TextField fx:id="kindTextField311" layoutX="19.0" layoutY="481.0" promptText="output point" />
+            <Button fx:id="newPocket2" layoutX="187.0" layoutY="451.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="38.0" text="add" />
+            <Button fx:id="newPocket21" layoutX="235.0" layoutY="452.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="61.0" text="transfer" />
+            <TextField fx:id="kindTextField33" layoutX="22.0" layoutY="541.0" promptText="addr" />
+            <Button fx:id="newPocket3" layoutX="196.0" layoutY="520.0" mnemonicParsing="false" text="query addr" />
+            <Button fx:id="newPocket31" layoutX="193.0" layoutY="552.0" mnemonicParsing="false" text="query balance" />
+            <Button fx:id="newPocket311" layoutX="39.0" layoutY="588.0" mnemonicParsing="false" text="query statistics" />
+            <Button fx:id="newPocket3111" layoutX="150.0" layoutY="588.0" mnemonicParsing="false" text="query kind" />
          </children></AnchorPane>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+         <children>
+            <TextArea fx:id="logMessage" layoutX="1.0" layoutY="155.0" prefHeight="477.0" prefWidth="636.0" />
+            <Button layoutX="509.0" layoutY="39.0" mnemonicParsing="false" onAction="#query" prefHeight="59.0" prefWidth="70.0" text="query" />
+            <Button layoutX="204.0" layoutY="39.0" mnemonicParsing="false" onAction="#invoke" prefHeight="59.0" prefWidth="70.0" text="invoke" />
+            <ComboBox fx:id="invokeCombox" layoutX="29.0" layoutY="39.0" prefHeight="23.0" prefWidth="161.0" />
+            <TextField fx:id="invokeArgs" layoutX="29.0" layoutY="74.0" />
+            <ComboBox fx:id="queryCombox" layoutX="333.0" layoutY="39.0" prefHeight="23.0" prefWidth="161.0" />
+            <TextField fx:id="queryArgs" layoutX="333.0" layoutY="74.0" />
+         </children></AnchorPane>
   </items>
 </SplitPane>
