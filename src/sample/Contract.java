@@ -117,7 +117,8 @@ public class Contract {
         return true;
     }
 
-    public static boolean invoke(Config config, HFClient client, Channel channel, ChaincodeID chaincodeID, String[] args)throws Exception{
+    public static boolean invoke(Config config, HFClient client, Channel channel, ChaincodeID chaincodeID,
+                                 String[] args)throws Exception{
         client.setUserContext(config.getIntegrationTestsSampleOrg("peerOrg1").getUser(USER_1_NAME));
 
         Collection<ProposalResponse> responses;
@@ -231,5 +232,39 @@ public class Contract {
         }
 
         return true;
+    }
+
+    public static String query(HFClient client, Channel channel, ChaincodeID chaincodeID, String[] args)throws  Exception{
+
+        ///////////////
+        /// Send instantiate transaction to orderer
+
+        out("Sending instantiateTransaction to orderer with a and b set to 100 and %s respectively", "" + 200);
+
+        QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
+        queryByChaincodeRequest.setArgs(Arrays.copyOfRange(args, 1, args.length));
+        queryByChaincodeRequest.setFcn(args[0]);
+        queryByChaincodeRequest.setChaincodeID(chaincodeID);
+
+        Map<String, byte[]> tm2 = new HashMap<>();
+        tm2.put("HyperLedgerFabric", "QueryByChaincodeRequest:JavaSDK".getBytes(UTF_8));
+        tm2.put("method", "QueryByChaincodeRequest".getBytes(UTF_8));
+        queryByChaincodeRequest.setTransientMap(tm2);
+
+        StringBuilder res = new StringBuilder();
+        Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest, channel.getPeers());
+        for (ProposalResponse proposalResponse : queryProposals) {
+            if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
+                System.out.println("Failed query proposal from peer " + proposalResponse.getPeer().getName() + " status: " + proposalResponse.getStatus() +
+                        ". Messages: " + proposalResponse.getMessage()
+                        + ". Was verified : " + proposalResponse.isVerified());
+            } else {
+                String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
+                out("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), payload);
+                //assertEquals(payload, expect);
+                res.append(payload + ":");
+            }
+        }
+        return res.toString();
     }
 }

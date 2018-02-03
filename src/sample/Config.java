@@ -97,13 +97,12 @@ public class Config {
                 if (key.startsWith(INTEGRATIONTESTS_ORG)) {
 
                     String str = "^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$";
-                    System.out.println(str);
+                    //System.out.println(str);
                     Matcher match = orgPat.matcher(key);
 
                     if (match.matches() && match.groupCount() == 1) {
                         String orgName = match.group(1).trim();
                         sampleOrgs.put(orgName, new SampleOrg(orgName, val.trim()));
-
                     }
                 }
             }
