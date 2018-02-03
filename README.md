@@ -11,3 +11,5 @@ cd fabric-sdk-java/src/test/fixture/sdkintegration
 
 1.	初次使用，先点击join按钮，初始化channel和证书，然后installChaincode， 然后可以分别点击invoke和query
 2.	在环境已配好channel的情况下，先点击connect连接，然后再点击invoke和query
+
+使用的智能合约，在https://github.com/hustfoam/hyperledger-coin
