@@ -20,25 +20,26 @@
             <Button layoutX="4.0" layoutY="148.0" mnemonicParsing="false" onAction="#installChaincode" text="installChaincode" />
             <Button layoutX="124.0" layoutY="148.0" mnemonicParsing="false" onAction="#upgradeChaincode" text="upgradeChaincode" />
             <TextField fx:id="totalPointTextField" layoutX="20.0" layoutY="331.0" promptText="total point" />
-            <Button fx:id="newPocket" layoutX="185.0" layoutY="331.0" mnemonicParsing="false" text="newPocket" />
-            <ComboBox fx:id="kind" layoutX="87.0" layoutY="194.0" prefHeight="23.0" prefWidth="161.0" />
+            <Button layoutX="185.0" layoutY="331.0" mnemonicParsing="false" onAction="#newPocket" text="newPocket" />
+            <ComboBox fx:id="kindCombobox" layoutX="87.0" layoutY="194.0" prefHeight="23.0" prefWidth="161.0" />
             <TextField fx:id="publicKeyTextField" layoutX="88.0" layoutY="263.0" />
             <TextField fx:id="addrTextField" layoutX="87.0" layoutY="231.0" />
             <Label layoutX="33.0" layoutY="235.0" text="addr" />
             <Label layoutX="20.0" layoutY="267.0" text="publicKey" />
             <Label layoutX="34.0" layoutY="198.0" text="kind" />
-            <TextField fx:id="kindTextField3" layoutX="19.0" layoutY="376.0" promptText="addr" />
-            <Button fx:id="newPocket1" layoutX="187.0" layoutY="376.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="79.0" text="register" />
-            <TextField fx:id="kindTextField31" layoutX="20.0" layoutY="407.0" promptText="public key" />
-            <TextField fx:id="kindTextField32" layoutX="19.0" layoutY="450.0" promptText="output addr" />
-            <TextField fx:id="kindTextField311" layoutX="19.0" layoutY="481.0" promptText="output point" />
-            <Button fx:id="newPocket2" layoutX="187.0" layoutY="451.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="38.0" text="add" />
-            <Button fx:id="newPocket21" layoutX="235.0" layoutY="452.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="61.0" text="transfer" />
-            <TextField fx:id="kindTextField33" layoutX="22.0" layoutY="541.0" promptText="addr" />
-            <Button fx:id="newPocket3" layoutX="196.0" layoutY="520.0" mnemonicParsing="false" text="query addr" />
+            <TextField fx:id="registerAddrTextField" layoutX="19.0" layoutY="376.0" promptText="addr" />
+            <Button layoutX="187.0" layoutY="376.0" mnemonicParsing="false" onAction="#register" prefHeight="52.0" prefWidth="79.0" text="register" />
+            <TextField fx:id="registerPublicKeyTextField" layoutX="20.0" layoutY="407.0" promptText="public key" />
+            <TextField fx:id="outputAddrTextField" layoutX="19.0" layoutY="450.0" promptText="output addr" />
+            <TextField fx:id="outputPointTextField" layoutX="19.0" layoutY="481.0" promptText="output point" />
+            <Button layoutX="187.0" layoutY="451.0" mnemonicParsing="false" onAction="#addOutput" prefHeight="52.0" prefWidth="38.0" text="add" />
+            <Button layoutX="235.0" layoutY="452.0" mnemonicParsing="false" onAction="#transfer" prefHeight="52.0" prefWidth="61.0" text="transfer" />
+            <TextField fx:id="queryAddrTextField" layoutX="22.0" layoutY="541.0" promptText="addr" />
+            <Button layoutX="196.0" layoutY="520.0" mnemonicParsing="false" onAction="#queryAddr" text="query addr" />
             <Button fx:id="newPocket31" layoutX="193.0" layoutY="552.0" mnemonicParsing="false" text="query balance" />
             <Button fx:id="newPocket311" layoutX="39.0" layoutY="588.0" mnemonicParsing="false" text="query statistics" />
-            <Button fx:id="newPocket3111" layoutX="150.0" layoutY="588.0" mnemonicParsing="false" text="query kind" />
+            <Button layoutX="150.0" layoutY="588.0" mnemonicParsing="false" onAction="#queryKind" text="query kind" />
+            <TextField fx:id="newKindTextField" layoutX="20.0" layoutY="305.0" promptText="new kind" />
          </children></AnchorPane>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
          <children>
