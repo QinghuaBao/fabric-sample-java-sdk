@@ -252,6 +252,7 @@ public class Contract {
         queryByChaincodeRequest.setTransientMap(tm2);
 
         StringBuilder res = new StringBuilder();
+        String payload = "";
         Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest, channel.getPeers());
         for (ProposalResponse proposalResponse : queryProposals) {
             if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
@@ -259,12 +260,13 @@ public class Contract {
                         ". Messages: " + proposalResponse.getMessage()
                         + ". Was verified : " + proposalResponse.isVerified());
             } else {
-                String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
+                payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
                 out("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), payload);
                 //assertEquals(payload, expect);
                 res.append(payload + ":");
             }
         }
-        return res.toString();
+        Main.logger.error(res);
+        return payload;
     }
 }
