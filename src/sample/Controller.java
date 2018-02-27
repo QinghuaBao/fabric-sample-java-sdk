@@ -1,36 +1,27 @@
 package sample;
 
+import ecdsa.ECKey;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import jdk.nashorn.internal.scripts.JO;
-import org.apache.commons.codec.binary.Hex;
-import org.hyperledger.fabric.protos.peer.Chaincode;
 import org.hyperledger.fabric.sdk.*;
-import org.hyperledger.fabric.sdk.exception.CryptoException;
-import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.exception.TransactionEventException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
+import protos.FoamPocket;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static sample.JoinPeer.out;
 
 public class Controller {
     @FXML
@@ -38,23 +29,25 @@ public class Controller {
     @FXML
     private TextArea logMessage;
     @FXML
-    private TextField kindTextField;
-    @FXML
     private TextField addrTextField;
     @FXML
     private TextField publicKeyTextField;
     @FXML
     private TextField totalPointTextField;
     @FXML
-    private TextField registerAddr;
+    private TextField registerAddrTextField;
     @FXML
-    private TextField registerPublicKey;
+    private TextField registerPublicKeyTextField;
     @FXML
-    private TextField outputAddr;
+    private TextField outputAddrTextField;
     @FXML
-    private TextField outputPoint;
+    private TextField outputPointTextField;
     @FXML
-    private TextField queryAddr;
+    private TextField queryAddrTextField;
+    @FXML
+    private ComboBox<String> kindCombobox;
+    @FXML
+    private TextField newKindTextField;
 
 
     private final Config config = Config.getConfig();
@@ -63,7 +56,10 @@ public class Controller {
     private SampleStore sampleStore;
     private HFClient client;
     private Channel channel;
+    private List<FoamPocket.Output> outputList = new ArrayList<>();
 
+    private static final String DEFAULT_PRIVATEKEY = "AMzVddDJTFBtPd+lyPnkfreYORm0JQYP0WKGmJCQ2RUA";
+    private static final int prepoint = 100000000;
     private static final String ADMIN_NAME = "admin";
     public static final String USER_1_NAME = "user1";
 
@@ -80,9 +76,16 @@ public class Controller {
     @FXML
     private void initialize(){
         peerComboBox.setItems(FXCollections.observableArrayList("peer0", "peer1", "peer2", "peer3"));
-        LogViewThread thread = new LogViewThread(logMessage);
+        LogViewThread thread = null;
+        try {
+            thread = new LogViewThread(logMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         thread.start();
-        Main.logger.error("fafafa");
+
+        addrTextField.setText("Z5MoPT8TG24e5ncGAzNWSfFkTeH2Lrw3X");
+        publicKeyTextField.setText("BEtHWP3/wgq8iPKV48ddbRwhB6E5jKX3zUS9lW70vxN+KM0UJUXBzZjFRRYgIKY2KWdtfcU5WEZp+uk0PQu8yhM=");
     }
 
 
@@ -173,6 +176,159 @@ public class Controller {
         client.setUserContext(config.getIntegrationTestsSampleOrg("peerOrg1").getPeerAdmin());
     }
 
+    @FXML
+    private void newPocket()throws Exception{
+        channel = getChannel("foo");
+//        SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(Integer.toString(CHAIN_CODE_VERSION))
+                .setPath(CHAIN_CODE_PATH).build();
+
+        if (newKindTextField.getText().equals("") || totalPointTextField.getText().equals("") || addrTextField.getText().equals("")
+                || publicKeyTextField.getText().equals("")){
+            Main.logger.error("some args is null [newKindTextField, totalPointTextField, addrTextField, publicKeyTextField]");
+            return;
+        }
+
+        try {
+            Long.parseLong(totalPointTextField.getText());
+        } catch (NumberFormatException e) {
+            Main.logger.error("number format exception: " + e.getMessage());
+        }
+        String[] args = {"invoke_initpocket", newKindTextField.getText(), addrTextField.getText(), publicKeyTextField.getText(),
+                totalPointTextField.getText()};
+        boolean flag = Contract.invoke(config, client, channel, chaincodeID, args);
+        if (flag)
+            Main.logger.info("invoke contract new pocket " + flag);
+        else
+            Main.logger.error("invoke contract new pocket " + flag);
+
+        args = new String[]{"query_pointkind", "kind"};
+        String payload = Contract.query(client, channel, chaincodeID, args);
+        String[] res = DeserializeProto.deserilizePointKind(payload);
+        kindCombobox.setItems(FXCollections.observableArrayList(res));
+    }
+
+    @FXML
+    private void register()throws Exception{
+        channel = getChannel("foo");
+//        SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(Integer.toString(CHAIN_CODE_VERSION))
+                .setPath(CHAIN_CODE_PATH).build();
+
+        if (registerAddrTextField.getText().equals("") || registerPublicKeyTextField.getText().equals("")  ||
+                kindCombobox.getSelectionModel().getSelectedItem().equals("")){
+            Main.logger.error("some args is null [registerAddrTextField, registerPublicKeyTextField, kindCombobox]");
+            return;
+        }
+        String[] args = {"invoke_register",kindCombobox.getSelectionModel().getSelectedItem(), registerAddrTextField.getText(),
+                registerPublicKeyTextField.getText()};
+        boolean flag = Contract.invoke(config, client, channel, chaincodeID, args);
+        if (flag)
+            Main.logger.info("invoke contract register account " + flag);
+        else
+            Main.logger.error("invoke contract register account " + flag);
+    }
+
+    @FXML
+    private void addOutput(){
+        if (outputAddrTextField.getText().equals("") || outputPointTextField.getText().equals("")){
+            Main.logger.error("some args is null [outputAddrTextField, outputPointTextField]");
+            return;
+        }
+        long outputPoint = 0;
+        try {
+            outputPoint = Long.parseLong(outputPointTextField.getText());
+        } catch (NumberFormatException e) {
+            Main.logger.error("number format exception: " + e.getMessage());
+        }
+        FoamPocket.Output.Builder output = FoamPocket.Output.newBuilder();
+
+        output.setOutputAddr(outputAddrTextField.getText());
+        output.setOutputValue(outputPoint);
+        outputList.add(output.build());
+    }
+
+    @FXML
+    private void transfer()throws Exception{
+        channel = getChannel("foo");
+        SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(Integer.toString(CHAIN_CODE_VERSION))
+                .setPath(CHAIN_CODE_PATH).build();
+
+        if (addrTextField.getText().equals("") || kindCombobox.getSelectionModel().getSelectedItem().equals("")){
+            Main.logger.error("some args is null [queryAddrTextField, kindCombobox]");
+            return;
+        }
+        String[] args = new String[]{"query_addrs", kindCombobox.getSelectionModel().getSelectedItem(), addrTextField.getText()};
+        String payload = Contract.query(client, channel, chaincodeID, args);
+        FoamPocket.QueryResult queryResult = DeserializeProto.deserilizeQueryResult(payload);
+
+        FoamPocket.TXMap.TX.Builder txMap = FoamPocket.TXMap.TX.newBuilder();
+        txMap.setTimestamp(System.currentTimeMillis());
+        txMap.setInputAddr(addrTextField.getText());
+        txMap.setInputBalance(queryResult.getBalance());
+        txMap.setNounce(queryResult.getNounce());
+        txMap.setScript("");
+        txMap.setFee(100*prepoint);
+
+        for (int i = 0; i < outputList.size(); i++) {
+            txMap.addOutput(outputList.get(i));
+        }
+        outputList.clear();
+
+        FoamPocket.TXMap.Builder tx = FoamPocket.TXMap.newBuilder();
+        tx.setFounder("foam");
+        tx.setTimestamp(System.currentTimeMillis());
+        tx.putTxMap("0", txMap.build());
+
+        String res = Sign.sign(new ECKey(new BigInteger(Base64.getDecoder().decode(DEFAULT_PRIVATEKEY))), tx.build());
+
+        args = new String[]{"invoke_transfer", kindCombobox.getSelectionModel().getSelectedItem(), res};
+        boolean flag = Contract.invoke(config, client, channel, chaincodeID, args);
+        if (flag)
+            Main.logger.info("invoke contract transfer " + flag);
+        else
+            Main.logger.error("invoke contract transfer " + flag);
+    }
+
+    @FXML
+    private void queryAddr() throws Exception{
+        channel = getChannel("foo");
+        SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(Integer.toString(CHAIN_CODE_VERSION))
+                .setPath(CHAIN_CODE_PATH).build();
+
+        if (queryAddrTextField.getText().equals("") || kindCombobox.getSelectionModel().getSelectedItem().equals("")){
+            Main.logger.error("some args is null [queryAddrTextField, kindCombobox]");
+            return;
+        }
+        String[] args = new String[]{"query_addrs", kindCombobox.getSelectionModel().getSelectedItem(), queryAddrTextField.getText()};
+        String payload = Contract.query(client, channel, chaincodeID, args);
+        Main.logger.info(DeserializeProto.deserilizeQueryResult(payload));
+    }
+
+    private void init()throws Exception{
+        channel = getChannel("foo");
+//        SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(Integer.toString(CHAIN_CODE_VERSION))
+                .setPath(CHAIN_CODE_PATH).build();
+        System.out.println(chaincodeID);
+        String[] args = new String[]{"query_pointkind", "kind"};
+        String payload = Contract.query(client, channel, chaincodeID, args);
+        String[] res = DeserializeProto.deserilizePointKind(payload);
+        kindCombobox.setItems(FXCollections.observableArrayList(res));
+    }
+
+    @FXML
+    private void queryKind() throws Exception{
+        init();
+    }
+
     private Channel initChannel(Channel channel)throws Exception{
         SampleOrg sampleOrg = config.getIntegrationTestsSampleOrg("peerOrg1");
         Collection<Orderer> orderers = new LinkedList<>();
@@ -250,6 +406,8 @@ public class Controller {
             else warning("failed");
         }else
             warning("failed");
+
+        init();
     }
 
     @FXML
@@ -262,7 +420,7 @@ public class Controller {
         System.out.println(chaincodeID);
         String[] args = new String[]{""};
         String res = Contract.query(client, channel, chaincodeID, args);
-        warning(res);
+        Main.logger.info(res);
     }
 
     @FXML
